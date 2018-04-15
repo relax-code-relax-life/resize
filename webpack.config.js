@@ -2,8 +2,8 @@
 //npm install -D webpack webpack-cli  babel-core babel-loader babel-preset-env
 
 module.exports = {
-    // mode: 'production',
-    mode: 'none',
+    mode: 'production',
+    // mode: 'none',
     entry: {
         block: './src/resizeBlock.js',
         image: './src/resizeImage.js',
