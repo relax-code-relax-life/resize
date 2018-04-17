@@ -72,13 +72,17 @@ var getNatureSize = function (url) {
     })
 }
 
-export default function resize(ele, img, container) {
+export default function resize(ele, img, opt) {
 
     var $tar = $(ele);
     var url,
         scale;  //  w/h
 
-    getUrl(img).then(function (_url) {
+    var expandoProp = '__resize_dispose__';
+
+    if (ele[expandoProp]) ele[expandoProp]();
+
+    return getUrl(img).then(function (_url) {
         url = _url;
         return getNatureSize(url);
 
@@ -90,12 +94,20 @@ export default function resize(ele, img, container) {
         $tar.style({
             width: converSize.width + 'px',
             height: converSize.height + 'px',
-            backgroundImage: `url(${url})`,
-            backgroundSize: `100% 100%`
+            background: `url(${url}) 0/100% no-repeat`,
+            backgroundClip: 'border-box',
+            boxSizing: 'border-box'
         })
 
-        resizeBlock($tar[0], {container,scale});
+        opt.scale = scale;
+
+        var dispose = resizeBlock($tar[0], opt);
+
+        ele[expandoProp] = dispose;
+
+        return dispose;
     });
+
 }
 
 
