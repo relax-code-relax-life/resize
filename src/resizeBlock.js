@@ -12,7 +12,7 @@ var createFloatPoint = function (pointClass, defaultPointStyle) {
         right: '-3px',
         bottom: '-3px'
     }
-    if (!defaultPointClass) {
+    if (!defaultPointStyle) {
         Object.assign(style, {
             opacity: 0.5,
             backgroundColor: '#333',
