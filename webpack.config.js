@@ -5,8 +5,10 @@ module.exports = {
     mode: 'production',
     // mode: 'none',
     entry: {
-        block: './src/resizeBlock.js',
-        image: './src/resizeImage.js',
+        'dist/block': './src/resizeBlock.js',
+        'demo/block': './src/resizeBlock.js',
+        'dist/image': './src/resizeImage.js',
+        'demo/image': './src/resizeImage.js',
     },
     output: {
         filename: 'resize[name].js',

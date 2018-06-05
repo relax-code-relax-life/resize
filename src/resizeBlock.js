@@ -7,19 +7,20 @@ var createFloatPoint = function (pointClass, defaultPointStyle) {
 
     var style = {
         position: 'absolute',
-        width: '5px',
-        height: '5px',
-        right: '-3px',
-        bottom: '-3px'
+        width: '7px',
+        height: '7px',
+        right: '-4px',
+        bottom: '-4px'
     }
-    if (!defaultPointStyle) {
+    if (defaultPointStyle) {
         Object.assign(style, {
-            opacity: 0.5,
+            opacity: 0.7,
             backgroundColor: '#333',
             border: '1px #eee solid',
             cursor: 'nwse-resize',
         });
     }
+
 
     return $.create(`<div class="${pointClass}"></div>`).style(style);
 
@@ -30,6 +31,8 @@ var setTargetStyle = function ($target, targetClass, defaultTargetStyle) {
         borderImage: `url(${borderBg}) 1 1 1 repeat`,
         userSelect: 'none'
     } : {};
+
+
     if ($target.computeStyle().position === 'static') {
         targetStyle.position = 'relative';
     }
@@ -66,7 +69,11 @@ var getSize = function ($tar) {
  * @param scale {number} width/height
  * @param container     selector|node
  */
-export default function resizeEle(ele, {scale, container, targetClass, pointClass, defaultTargetStyle = true, defaultPointStyle = true} = {}) {
+export default function resizeEle(ele, {
+    scale, container, resizeActive, resizeStart, resizeMove, resizeEnd,
+    targetClass, pointClass, defaultTargetStyle = true, defaultPointStyle = true
+} = {}) {
+
 
     var $target = $(ele);
 
@@ -88,7 +95,9 @@ export default function resizeEle(ele, {scale, container, targetClass, pointClas
         moveSize,
 
         moveValidSize,
-        moveRange;
+        moveRange,
+
+        execStartEvent;
 
     function onMouseDown(e) {
         isDrag = true;
@@ -113,11 +122,24 @@ export default function resizeEle(ele, {scale, container, targetClass, pointClas
             };
         }
 
+
+        resizeActive && resizeActive($target[0], Object.assign({}, startSize));
+
+        if (resizeStart) {
+            execStartEvent = function () {
+                execStartEvent = null;
+                return resizeStart($target[0], Object.assign({}, startSize));
+            }
+        }
+
         e.stopPropagation();
+        return false;
     }
 
     function onMouseMove(e) {
         if (!isDrag) return;
+        if (execStartEvent && execStartEvent() === false) return;
+
         deltaPos = {
             top: e.pageY - startPos.top,
             left: e.pageX - startPos.left
@@ -158,7 +180,12 @@ export default function resizeEle(ele, {scale, container, targetClass, pointClas
             height: moveSize.height + 'px'
         });
 
-        e.stopPropagation();
+
+        resizeMove && resizeMove($target[0], Object.assign({}, moveSize));
+
+
+        // e.stopPropagation();
+        // return false;
 
     }
 
@@ -166,8 +193,10 @@ export default function resizeEle(ele, {scale, container, targetClass, pointClas
 
         if (isDrag) {
             isDrag = false;
+            resizeEnd && resizeEnd($target[0], moveSize);
         }
-        e.stopPropagation();
+        // e.stopPropagation();
+        // return false;
     }
 
     $floatPoint.on('mousedown', onMouseDown);
