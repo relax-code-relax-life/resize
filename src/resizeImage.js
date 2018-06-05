@@ -1,10 +1,15 @@
 import resizeBlock from './resizeBlock';
 import $ from 'wwl-dom';
 
+const reg_isUrl = /^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/i;
+const isUrl = function (url) {
+    return reg_isUrl.test(url);
+}
 
+//将图片转化为url
 var getUrl = function (img) {
-
     if (typeof img === 'string') {
+        if (!isUrl(img)) return Promise.reject();
         return Promise.resolve(img);
     }
     else {
@@ -17,6 +22,22 @@ var getUrl = function (img) {
         })
     }
 }
+
+//获取图片原始大小
+var getNatureSize = function (url) {
+    var img = new Image();
+    return new Promise(function (resolve, reject) {
+        img.onload = function () {
+            resolve({
+                width: img.width,
+                height: img.height
+            })
+        };
+        img.onerror = reject;
+        img.src = url;
+    })
+}
+
 
 var getSize = function ($tar) {
 
@@ -35,10 +56,10 @@ var getSize = function ($tar) {
     }
 
 };
-var getCoverSize = function (imgSize, containerSize) {
+var getCoverSize = function (scale, containerSize) {
 
     //按照宽度 求高
-    var tarH = containerSize.width / imgSize.width * imgSize.height
+    var tarH = containerSize.width / scale
 
     if (tarH <= containerSize.height) {
         return {
@@ -48,7 +69,7 @@ var getCoverSize = function (imgSize, containerSize) {
     }
 
     //按照高度求宽
-    var tarW = containerSize.height / imgSize.height * imgSize.width;
+    var tarW = containerSize.height * scale;
     return {
         width: tarW,
         height: containerSize.height
@@ -58,54 +79,63 @@ var getCoverSize = function (imgSize, containerSize) {
 }
 
 
-var getNatureSize = function (url) {
-    var img = new Image();
-    return new Promise(function (resolve, reject) {
-        img.onload = function () {
-            resolve({
-                width: img.width,
-                height: img.height
-            })
-        };
-        img.onerror = reject;
-        img.src = url;
-    })
-}
+/**
+ *
+ * @param ele
+ * @param img
+ * @param disableScale
+ * @param opt
+ * @returns {PromiseLike<T>}
+ */
+export default function resize(ele, img, opt={}) {
 
-export default function resize(ele, img, opt) {
+    var disableScale = opt.disableScale;
 
     var $tar = $(ele);
-    var url,
-        scale;  //  w/h
-
-    var expandoProp = '__resize_dispose__';
-
-    if (ele[expandoProp]) ele[expandoProp]();
+    var url;
 
     return getUrl(img).then(function (_url) {
         url = _url;
         return getNatureSize(url);
 
     }).then(function ({width, height}) {
-        scale = width / height;
+
+        //  w/h
+        var scale;
+
+        if (!disableScale) {
+            scale = width / height;
+            opt.scale = scale;
+        }
+
         var containerSize = getSize($tar);
-        var converSize = getCoverSize({width, height}, containerSize);
+
+        var converSize = scale ? getCoverSize(scale, containerSize) : containerSize;
 
         $tar.style({
             width: converSize.width + 'px',
             height: converSize.height + 'px',
-            background: `url(${url}) 0/100% no-repeat`,
+            background: `url(${url}) 0/100% 100% no-repeat`,
             backgroundClip: 'border-box',
             boxSizing: 'border-box'
         })
 
-        opt.scale = scale;
+        var resizeBlockDispose = resizeBlock($tar[0], opt);
 
-        var dispose = resizeBlock($tar[0], opt);
+        var dispose = function () {
 
-        ele[expandoProp] = dispose;
+            resizeBlockDispose();
+            $tar.removeStyle('width', 'height', 'backgroud', 'backgroundClip', 'boxSizing');
 
-        return dispose;
+            dispose = null;
+        };
+
+        return function () {
+            dispose && dispose();
+        };
+
+    }, (err) => {
+        return Promise.reject(err);
     });
 
 }

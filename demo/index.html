@@ -31,6 +31,12 @@
 
 </div>
 
-<script src="../dist/resizeimage.js"></script>
+<script src="./resizeimage.js"></script>
+<script>
+    var resize=window.resize.default;
+    resize('.resize', 'http://pic-bucket.nosdn.127.net/photo/0001/2018-04-15/DFEV9E9M00AO0001NOS.jpg',{
+        container:'.container'
+    })
+</script>
 </body>
 </html>

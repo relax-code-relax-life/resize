@@ -1,6 +1,6 @@
 {
   "name": "wwl-resize",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,14 +14,10 @@
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.6.1",
     "url-loader": "^1.0.1",
-    "webpack": "^4.5.0",
-
-
-
-
+    "webpack": "^4.11.0",
     "webpack-cli": "^2.0.14"
   },
   "dependencies": {
-    "wwl-dom": "^1.0.8"
+    "wwl-dom": "^1.0.27"
   }
 }

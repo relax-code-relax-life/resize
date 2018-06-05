@@ -3,7 +3,7 @@ import borderBg from './borderbg.gif';
 
 var docEle = document.documentElement;
 
-var createFloatPoint = function (pointClass, defaultPointStyle) {
+var createFloatPoint = function (pointClass, defaultPointStyle = true) {
 
     var style = {
         position: 'absolute',
@@ -21,7 +21,6 @@ var createFloatPoint = function (pointClass, defaultPointStyle) {
         });
     }
 
-
     return $.create(`<div class="${pointClass}"></div>`).style(style);
 
 }
@@ -29,7 +28,7 @@ var setTargetStyle = function ($target, targetClass, defaultTargetStyle) {
     var targetStyle = defaultTargetStyle ? {
         border: '1px solid transparent',
         borderImage: `url(${borderBg}) 1 1 1 repeat`,
-        userSelect: 'none'
+        // userSelect: 'none'
     } : {};
 
 
@@ -57,7 +56,8 @@ var getSize = function ($tar) {
     }
 
     return {
-        width, height
+        width,
+        height
     }
 
 };
@@ -69,11 +69,21 @@ var getSize = function ($tar) {
  * @param scale {number} width/height
  * @param container     selector|node
  */
-export default function resizeEle(ele, {
-    scale, container, resizeActive, resizeStart, resizeMove, resizeEnd,
-    targetClass, pointClass, defaultTargetStyle = true, defaultPointStyle = true
-} = {}) {
 
+
+export default function resizeEle(ele, {
+    scale, container,
+    //event:
+    resizeActive, resizeStart, resizeMove, resizeEnd,
+
+    //style:
+    targetClass='',
+    pointClass='',
+
+    //这两个参数，暂时搁置，认为不需要这两个参数，但是目前需要有hack的方式，
+    defaultTargetStyle = true,
+    defaultPointStyle = true
+} = {}) {
 
     var $target = $(ele);
 
@@ -84,11 +94,21 @@ export default function resizeEle(ele, {
 
     if (typeof scale !== 'number') scale = undefined;
 
-    var $floatPoint = createFloatPoint(pointClass, defaultPointStyle);
+    var $floatPoint;
+    var floatPointClass = '_resize_block_cls';
 
-    setTargetStyle($target, targetClass, defaultTargetStyle).append($floatPoint);
+    if (ele.__resize_off_listener) {
+        ele.__resize_off_listener();
+        $floatPoint = $target.find('.' + floatPointClass);
+    }
+    else {
+        $floatPoint = createFloatPoint(pointClass, defaultPointStyle);
+        setTargetStyle($target, floatPointClass + ' ' + targetClass, defaultTargetStyle).append($floatPoint);
+    }
+
 
     var isDrag = false,
+
         startSize,
         startPos,
         deltaPos,
@@ -109,19 +129,24 @@ export default function resizeEle(ele, {
         startSize = getSize($target);
 
         if ($container) {
-            var containerSize = getSize($container);
+            // var containerSize = getSize($container);
 
             var containerBox = $container[0].getBoundingClientRect();
             var tarBox = $target[0].getBoundingClientRect();
 
-            // debugger;
+            var containerStyle = $container.computeStyle();
+            let containerBorder = [
+                containerStyle.borderTopWidth,
+                containerStyle.borderRightWidth,
+                containerStyle.borderBottomWidth,
+                containerStyle.borderLeftWidth
+            ].map(val => parseInt(val));
 
             moveRange = {
-                width: containerBox.right - tarBox.left,
-                height: containerBox.bottom - tarBox.top
+                width: containerBox.right - tarBox.left - containerBorder[1],
+                height: containerBox.bottom - tarBox.top - containerBorder[2]
             };
         }
-
 
         resizeActive && resizeActive($target[0], Object.assign({}, startSize));
 
@@ -204,9 +229,18 @@ export default function resizeEle(ele, {
     $(docEle).on('mousemove', onMouseMove)
         .on('mouseup', onMouseUp);
 
-    var dispose = function () {
+
+    var offListener = function () {
         $floatPoint.off('mousedown', onMouseDown);
         $(docEle).off('mousemove', onMouseMove).off('mouseup', onMouseUp);
+    }
+
+    ele.__resize_off_listener = offListener;
+
+    var dispose = function () {
+        offListener();
+        $floatPoint.remove();
+        ele.__resize_off_listener = undefined;
         dispose = null;
     }
 

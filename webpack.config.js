@@ -5,14 +5,14 @@ module.exports = {
     mode: 'production',
     // mode: 'none',
     entry: {
-        'dist/block': './src/resizeBlock.js',
-        'demo/block': './src/resizeBlock.js',
-        'dist/image': './src/resizeImage.js',
-        'demo/image': './src/resizeImage.js',
+        'dist/resizeblock': './src/resizeBlock.js',
+        'demo/resizeblock': './src/resizeBlock.js',
+        'dist/resizeimage': './src/resizeImage.js',
+        'demo/resizeimage': './src/resizeImage.js',
     },
     output: {
-        filename: 'resize[name].js',
-        path: __dirname + '/dist',
+        filename: '[name].js',
+        path: __dirname ,
 
         library: 'resize',
         libraryTarget: 'umd',
