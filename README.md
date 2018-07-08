@@ -12,8 +12,8 @@
 ## 直接下载
 
 
-- resizeBlock: `http://wangwl.net/static/demo/resize/resizeblock.js`
-- resizeImage: `http://wangwl.net/static/demo/resize/resizeimage.js`
+- resizeBlock: `http://wangwl.net/static/demo/wwl-resize/resizeblock.js`
+- resizeImage: `http://wangwl.net/static/demo/wwl-resize/resizeimage.js`
 
 # resizeBlock
 function( node , options? ) : function
